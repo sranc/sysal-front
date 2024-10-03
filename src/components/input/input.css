@@ -1,0 +1,31 @@
+.input-group {
+  position: relative;
+}
+.input-group input {
+  border-radius: 12px;
+}
+.input-group label {
+  padding-top: 5px;
+  transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+.input-group input:focus ~ label,
+.input-group input:not(:placeholder-shown) ~ label {
+  transform: translateY(-1%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+.input-group p {
+  font-size: 12px;
+}
+.input-group div {
+  position: absolute;
+}
+
+.input-group textarea:focus ~ label,
+.input-group textarea:not(:placeholder-shown) ~ label {
+  transform: translateY(-1%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

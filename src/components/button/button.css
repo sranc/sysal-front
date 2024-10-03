@@ -1,0 +1,21 @@
+/* Estilos base del botón */
+.ripple-btn {
+  transition: background-color 0.3s;
+}
+
+/* Efecto ripple */
+.ripple-circle {
+  position: absolute;
+  border-radius: 50%;
+  transform: scale(0);
+  animation: rippleEffect 1.5s;
+  background-color: rgba(255, 255, 255, 0.7); /* Color del efecto ripple */
+}
+
+/* Animación del efecto ripple */
+@keyframes rippleEffect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}

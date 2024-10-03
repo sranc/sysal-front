@@ -1,0 +1,30 @@
+.select-group {
+  position: relative;
+}
+
+.select-group select {
+  border-radius: 12px;
+  padding-left: 10px;
+}
+
+.select-group label {
+  padding-top: 5px;
+  transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.select-group select:focus ~ label,
+.select-group select:not(:placeholder-shown) ~ label {
+  transform: translateY(-1%);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.select-group select option {
+  background-color: white;
+  font-size: 15px;
+}
+
+.select-group p {
+  font-size: 12px;
+}

@@ -1,0 +1,5 @@
+export const ACTIONS_FORM = {
+  SET_FIELD: "SET_FIELD",
+  SET_ERRORS: "SET_ERRORS",
+  RESET: "RESET",
+};
