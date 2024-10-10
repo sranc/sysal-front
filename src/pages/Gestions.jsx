@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import Breadcrumb from "../components/Breadcrumb";
 import GestionForm from "./../components/forms/GestionForm";
 import DataTable from "../components/dataTableGestion/DataTable";
 import Swal from "sweetalert2";
-import axios from "../api/axios";
 import { CircularProgress } from "@nextui-org/react";
 import { FaTableList, FaWpforms } from "react-icons/fa6";
+import useCrudQuery from "../hooks/useCrudQuery";
 
 const tableHeader = [
   { name: "Gestión", data: "gestion" },
@@ -16,128 +16,106 @@ const tableHeader = [
 const initialForm = { form: { gestion: "" }, errors: {} };
 
 const Gestions = () => {
-  const [data, setData] = useState(null);
-  const [hasTrueState, setHasTrueState] = useState(true);
+  const [hasTrueState, setHasTrueState] = useState(false);
+
+  const { data, isLoading, error, createData, closeData } = useCrudQuery(
+    "gestions",
+    "/gestion"
+  );
 
   const handleCloseGestion = (element) => {
-    const controller = new AbortController();
     Swal.fire({
-      title: "Esta Seguro? ",
-      text: `Usted va ha cerrar la gesion ${element.gestion} y no podra revertirlo!`,
+      title: "Está seguro?",
+      text: `Usted va a cerrar la gestión ${element.gestion} y no podrá revertirlo!`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#3C50E0",
       cancelButtonColor: "#D34053",
-      confirmButtonText: "Si, Cierralo!",
+      confirmButtonText: "Sí, ciérralo!",
     }).then((result) => {
       if (result.isConfirmed) {
-        axios
-          .delete(`/gestion/${element.id}`, {
-            signal: controller.signal,
-          })
-          .then((response) => {
-            if (response.status === 204) {
-              Swal.fire(
-                "Cerrada!",
-                `La gestion ${element.gestion} fue cerrada.`,
-                "success"
-              );
-              const newData = data.map((el) => {
-                if (el.id === element.id) {
-                  return {
-                    ...el,
-                    state: {
-                      value: 0,
-                      formatted: "Inactivo",
-                    },
-                  };
-                }
-                return el;
-              });
-              setData(newData);
-              setHasTrueState(false);
-            }
-          });
+        closeData.mutate(element.id, {
+          onSuccess: () => {
+            Swal.fire(
+              "Cerrada!",
+              `La gestión ${element.gestion} fue cerrada.`,
+              "success"
+            );
+            setHasTrueState(false);
+          },
+          onError: (err) => {
+            Swal.fire({
+              position: "top",
+              icon: "error",
+              title: "Error!!!",
+              text:
+                err.message ||
+                "Ocurrió un error, intente nuevamente o llame al administrador",
+            });
+            console.error(err);
+          },
+        });
       }
     });
   };
 
   const handleCreate = (element, reset) => {
-    axios
-      .post("/gestion", element)
-      .then((response) => {
-        setData([response.data.data, ...data]);
+    createData.mutate(element, {
+      onSuccess: () => {
         Swal.fire({
           position: "top",
           icon: "success",
-          title: "Gestion Agregada",
+          title: "Gestión Agregada",
           showConfirmButton: false,
           timer: 3000,
         });
+        setHasTrueState(true);
         reset();
-      })
-      .catch((err) => {
-        if (err.response.data) {
-          const error = err.response.data;
-          Swal.fire({
-            position: "top",
-            icon: "error",
-            title: "Error!!!",
-            text: error.message,
-          });
-        } else {
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Error!",
-            text: "Ocurrio un error, intente nuevamente o llame al administrador",
-          });
-        }
+      },
+      onError: (err) => {
+        Swal.fire({
+          position: "top",
+          icon: "error",
+          title: "Error!!!",
+          text:
+            err.message ||
+            "Ocurrió un error, intente nuevamente o llame al administrador",
+        });
         console.error(err);
-      });
+      },
+    });
   };
 
   useEffect(() => {
-    const controller = new AbortController();
-    const getGestions = async () => {
-      try {
-        const response = await axios.get("/gestion", {
-          signal: controller.signal,
-        });
-        setData(response.data.data);
-        setHasTrueState(
-          response.data.data.some((item) => item.state.value === 1)
-        );
-      } catch (err) {
-        console.log(err);
-        if (err.response.data) {
-          const error = err.response.data;
-          Swal.fire({
-            position: "top",
-            icon: "error",
-            title: "Error!!!",
-            text: error.message,
-          });
-        } else {
-          Swal.fire({
-            position: "center",
-            icon: "error",
-            title: "Error!",
-            text: "Ocurrio un error, intente nuevamente o llame al administrador",
-          });
-        }
-        console.error(err);
-      }
-    };
-    getGestions();
+    if (data && data.length > 0) {
+      const someActiveState = data.some((item) => item.state.value === 1);
+      console.log(someActiveState);
+      setHasTrueState(someActiveState);
+    }
   }, []);
+
+  if (isLoading) {
+    return <CircularProgress size="lg" aria-label="Cargando..." />;
+  }
+
+  if (error) {
+    Swal.fire({
+      position: "top",
+      icon: "error",
+      title: "Error!!!",
+      text:
+        error.message ||
+        "Ocurrió un error, intente nuevamente o llame al administrador",
+    });
+    console.error(error);
+  }
 
   return (
     <>
       <Breadcrumb pageName="Gestiones" />
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-        <div className="flex flex-col col-span-1 sm:col-span-2  gap-5">
-          <div className="rounded-md bg-white border border-stroke shadow-default dark:shadow-strokedark  dark:border-strokedark dark:bg-boxdark">
+        <div className="flex flex-col col-span-1 sm:col-span-2 gap-5">
+          <div className="rounded-md bg-white border border-stroke shadow-default dark:shadow-strokedark dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke bg-sea1 rounded-t-md dark:bg-transparent py-4 px-6.5 dark:border-strokedark">
               <div className="font-medium text-black dark:text-white">
                 <div className="flex items-center">
@@ -146,7 +124,7 @@ const Gestions = () => {
                 </div>
               </div>
             </div>
-            <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-1.5  dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-4 overflow-auto">
+            <div className="rounded-sm border border-stroke bg-white px-5 pt-6 pb-1.5 dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-4 overflow-auto">
               {data ? (
                 <DataTable
                   data={data}
@@ -165,7 +143,7 @@ const Gestions = () => {
               <div className="font-medium text-black dark:text-white">
                 <div className="flex items-center">
                   <FaWpforms className="mr-2" />
-                  <p>Agregar Gesti&oacute;n</p>
+                  <p>Agregar Gestión</p>
                 </div>
               </div>
             </div>

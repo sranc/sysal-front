@@ -5,7 +5,7 @@ import { CircularProgress } from "@nextui-org/react";
 import FinancingForm from "../components/forms/FinancingForm";
 import Swal from "sweetalert2";
 import { FaTableList, FaWpforms } from "react-icons/fa6";
-import useFinancing from "../hooks/useFinancing";
+import useCrudQuery from "../hooks/useCrudQuery";
 
 const tableHeader = [
   { name: "Financiamiento", data: "name" },
@@ -17,15 +17,15 @@ const tableHeader = [
 ];
 
 const Financing = () => {
-  // Utiliza el hook useFinancing
+  // Utiliza el hook useCrudQuery
   const {
-    data,
-    isLoading,
-    error,
-    createFinancing,
-    updateFinancing,
-    deleteFinancing,
-  } = useFinancing();
+    data, // Los datos de la consulta
+    isLoading, // Estado de carga
+    error, // Cualquier error en la consulta
+    createData, // Función para crear un nuevo registro
+    updateData, // Función para actualizar un registro
+    deleteData, // Función para eliminar un registro
+  } = useCrudQuery("financing", "/financing");
 
   const [dataToUpdate, setDataToUpdate] = useState(null);
 
@@ -34,7 +34,7 @@ const Financing = () => {
   };
 
   const handleCreate = (form, resetForm) => {
-    createFinancing.mutate(form, {
+    createData.mutate(form, {
       onSuccess: () => {
         Swal.fire({
           position: "center",
@@ -64,8 +64,7 @@ const Financing = () => {
       id: form.id,
       name: form.name,
     };
-    console.log("Datos enviados para actualización:", updatedForm);
-    updateFinancing.mutate(updatedForm, {
+    updateData.mutate(updatedForm, {
       onSuccess: () => {
         Swal.fire({
           position: "center",
@@ -102,7 +101,7 @@ const Financing = () => {
       confirmButtonText: "Sí, Ciérralo!",
     }).then((result) => {
       if (result.isConfirmed) {
-        deleteFinancing.mutate(el.id, {
+        deleteData.mutate(el.id, {
           onSuccess: () => {
             Swal.fire({
               position: "center",
